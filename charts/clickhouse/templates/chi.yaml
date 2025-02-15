@@ -1,4 +1,3 @@
-{{- $service_name := tpl (include "clickhouse.serviceTemplateName" . ) . -}}
 ---
 apiVersion: "clickhouse.altinity.com/v1"
 kind: ClickHouseInstallation
@@ -9,19 +8,13 @@ metadata:
 spec:
   defaults:
     templates:
-      serviceTemplate: {{ $service_name }}
-      {{- if .Values.clickhouse.lbService.enabled }}
-      clusterServiceTemplate: {{ $service_name }}-lb
-      {{- end }}
+      serviceTemplate: {{ include "clickhouse.serviceTemplateName" . }}
       podTemplate: {{ include "clickhouse.podTemplateName" . }}
       {{- if .Values.clickhouse.persistence.enabled }}
       dataVolumeClaimTemplate: {{ include "clickhouse.volumeClaimTemplateName" . }}
       {{- end }}
   useTemplates:
-    - name: {{ $service_name }}
-    {{- if .Values.clickhouse.lbService.enabled }}
-    - name: {{ $service_name }}-lb
-    {{- end }}
+    - name: {{ include "clickhouse.serviceTemplateName" . }}
     - name: {{ include "clickhouse.podTemplateName" . }}
     - name: {{ include "clickhouse.volumeClaimTemplateName" . }}
     {{- if not (empty .Values.clickhouse.zones) -}}
@@ -30,6 +23,7 @@ spec:
     - name: {{ include "clickhouse.podTemplateName" $originalContext }}-{{ . }}
     {{- end -}}
     {{- end }}
+
   configuration:
     users:
       default/networks/ip: {{ include "clickhouse.defaultUser.ip" . | quote }}
@@ -59,7 +53,7 @@ spec:
     zookeeper:
         nodes:
           - host: {{ $keeper_host }}
-            port: {{ .Values.clickhouse.keeper.port }}
+            port: {{ .Values.keeper.port }}
     {{- end }}
 
 {{ include "validate.clickhouse.keeper" . }}
